@@ -1,0 +1,3 @@
+whitelistai/whitelist_cache.json
+__pycache__/
+.DS_Store

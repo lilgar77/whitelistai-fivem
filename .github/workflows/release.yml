@@ -1,0 +1,44 @@
+name: Tests et release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Tests (natives FiveM simulées)
+        run: uv run --with lupa python tests/run.py whitelistai
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Le tag correspond à la version du fxmanifest
+        run: |
+          manifest=$(sed -n "s/^version '\(.*\)'$/\1/p" whitelistai/fxmanifest.lua)
+          if [ "v$manifest" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME mais fxmanifest en $manifest" >&2
+            exit 1
+          fi
+
+      - name: Création du zip
+        run: zip -r whitelistai.zip whitelistai -x 'whitelistai/whitelist_cache.json' -x '*.DS_Store'
+
+      - name: Publication de la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" whitelistai.zip --title "$GITHUB_REF_NAME" --generate-notes
