@@ -22,6 +22,17 @@ uv run --with lupa python tests/run.py whitelistai              # tous les scén
 uv run --with lupa python tests/run.py whitelistai code_ok      # un seul
 ```
 
+## Simulateur
+
+Fait tourner la vraie ressource contre une API (locale par défaut) : tu joues le joueur qui se
+connecte et tu tapes les codes d'accès comme dans FiveM.
+
+```bash
+uv run --with lupa python tests/simulate.py --key wai_...
+```
+
+Avec le compte de démo du backend (`uv run python scripts/seed_demo.py`), qui affiche la clé et un code valide.
+
 ## Contrat d'API (à implémenter côté backend)
 
 Toutes les routes sont sous `/api/fivem`, appelées par le serveur FiveM avec

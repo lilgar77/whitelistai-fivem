@@ -1,7 +1,6 @@
 import json, sys, pathlib
 from lupa import lua54
 
-RES = pathlib.Path(sys.argv[1])
 HERE = pathlib.Path(__file__).parent
 PRELUDE = r'''
 json = { encode = py_encode, decode = function(s) return py_decode(s) end }
@@ -63,7 +62,11 @@ function PerformHttpRequest(url, cb, method, data, headers)
 end
 '''
 
-def run_scenario(name):
+RESOURCE_FILES = ['config.lua', 'server/utils.lua', 'server/api.lua', 'server/cache.lua', 'server/main.lua']
+
+
+def new_runtime():
+    """Lua 5.4 with simulated FiveM natives and a JSON bridge (resource not loaded yet)."""
     lua = lua54.LuaRuntime(unpack_returned_tuples=True)
     g = lua.globals()
     def to_py(v):
@@ -81,17 +84,34 @@ def run_scenario(name):
     g.py_decode = lambda s: to_lua(json.loads(s))
     g.py_files = lua.table()
     lua.execute(PRELUDE)
+    return lua, to_py
+
+
+def load_resource(lua, res):
+    for f in RESOURCE_FILES:
+        lua.execute((pathlib.Path(res) / f).read_text())
+
+
+def run_scenario(res, name):
+    lua, _ = new_runtime()
+    g = lua.globals()
     lua.execute((HERE / 'scenarios.lua').read_text())
     g.SCENARIOS[name].setup()
-    for f in ['config.lua', 'server/utils.lua', 'server/api.lua', 'server/cache.lua', 'server/main.lua']:
-        lua.execute((RES / f).read_text())
+    load_resource(lua, res)
     g.SCENARIOS[name].test()
 
-names = sys.argv[2:] or list(lua54.LuaRuntime().execute((HERE / "scenarios.lua").read_text() + " local n = {} for k in pairs(SCENARIOS) do n[#n+1] = k end table.sort(n) return table.concat(n, \",\")").split(","))
-failed = 0
-for n in names:
-    try:
-        run_scenario(n); print('PASS', n)
-    except Exception as e:
-        failed += 1; print('FAIL', n, '->', e)
-sys.exit(1 if failed else 0)
+
+def main():
+    res = sys.argv[1]
+    names = sys.argv[2:] or list(lua54.LuaRuntime().execute((HERE / "scenarios.lua").read_text() + " local n = {} for k in pairs(SCENARIOS) do n[#n+1] = k end table.sort(n) return table.concat(n, \",\")").split(","))
+    failed = 0
+    for n in names:
+        try:
+            run_scenario(res, n); print('PASS', n)
+        except Exception as e:
+            failed += 1; print('FAIL', n, '->', e)
+    sys.exit(1 if failed else 0)
+
+
+if __name__ == '__main__':
+    main()
