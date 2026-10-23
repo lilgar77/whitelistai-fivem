@@ -21,8 +21,8 @@ Config.OfflineMode = 'cache'
 -- Durée pendant laquelle un joueur accepté reste dans le cache local (en jours).
 Config.CacheDays = 7
 
--- Délai max d'une requête vers WhitelistAI (en millisecondes).
-Config.RequestTimeout = 8000
+-- Délai max d'une requête vers WhitelistAI (en millisecondes). Au-delà, OfflineMode s'applique.
+Config.RequestTimeout = 4000
 
 -- Nombre d'essais de code autorisés par joueur, sur une fenêtre de 10 minutes.
 Config.MaxCodeAttempts = 5

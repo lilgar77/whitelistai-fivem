@@ -5,7 +5,7 @@ lua54 'yes'
 name 'whitelistai'
 author 'LILGAR'
 description 'Whitelist automatique WhitelistAI (https://whitelistai.fr)'
-version '1.0.1'
+version '1.0.2'
 
 -- Server only: nothing is ever sent to the players' game.
 server_scripts {
